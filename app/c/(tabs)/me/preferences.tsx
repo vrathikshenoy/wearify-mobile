@@ -1,0 +1,28 @@
+import { useEffect, useRef, useState } from "react";
+import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
+import { useMutation, useQuery } from "convex/react";
+import { api } from "@/src/convex/api";
+import { AppHeader, Field, Loading, PrimaryButton, Screen, Title } from "@/src/components/ui";
+import { useAuth } from "@/src/providers/auth";
+import { useIsOnline } from "@/src/providers/connectivity";
+import { colors, radius } from "@/src/theme/tokens";
+
+const OCCASIONS = ["Wedding", "Festival", "Party", "Office", "Daily", "Gift"];
+const FABRICS = ["Pure Silk", "Georgette", "Cotton", "Linen", "Chanderi", "Banarasi", "Kanjivaram", "Tussar"];
+const COLORS = [["Crimson", "#DC143C"], ["Purple", "#7B3FA0"], ["Gold", "#E0A800"], ["Green", "#2D8544"], ["Blue", "#1F5FE0"], ["Pink", "#F4B9CD"], ["Black", "#1A1A1A"], ["White", "#FFFFFF"]] as const;
+const BUDGETS = ["Under ₹5,000", "₹5,000–₹15,000", "₹15,000–₹30,000", "₹30,000–₹50,000", "Above ₹50,000"];
+
+export default function PreferencesScreen() {
+  const { token, user } = useAuth(); const online = useIsOnline(); const seeded = useRef(false);
+  const customer = useQuery(api.customers.getById, token && user ? { token, customerId: user.customerId } : "skip");
+  const update = useMutation(api.customers.updatePreferences);
+  const [occasions, setOccasions] = useState<string[]>([]); const [fabrics, setFabrics] = useState<string[]>([]); const [selectedColors, setSelectedColors] = useState<string[]>([]);
+  const [budget, setBudget] = useState(""); const [occasion, setOccasion] = useState(""); const [date, setDate] = useState(""); const [city, setCity] = useState(""); const [busy, setBusy] = useState(false);
+  useEffect(() => { if (!customer || seeded.current) return; seeded.current = true; setOccasions(customer.preferredOccasions ?? []); setFabrics(customer.preferredFabrics ?? []); setSelectedColors(customer.preferredColors ?? []); setBudget(customer.budgetRange ?? ""); setOccasion(customer.upcomingOccasion ?? ""); setDate(customer.upcomingOccasionDate ?? ""); setCity(customer.city ?? ""); }, [customer]);
+  const toggle = (value: string, list: string[], set: (next: string[]) => void) => set(list.includes(value) ? list.filter((item) => item !== value) : [...list, value]);
+  async function save() { if (!online) return Alert.alert("You’re offline", "Reconnect to save preferences."); if (!token || !user) return; setBusy(true); try { await update({ token, customerId: user.customerId, preferredOccasions: occasions, preferredFabrics: fabrics, preferredColors: selectedColors, budgetRange: budget || undefined, upcomingOccasion: occasion || undefined, upcomingOccasionDate: date || undefined, city: city.trim() || undefined }); Alert.alert("Saved", "Your style preferences are updated."); } catch { Alert.alert("Couldn’t save", "Please try again."); } finally { setBusy(false); } }
+  if (customer === undefined) return <><AppHeader back title="My preferences" /><Loading /></>;
+  return <><AppHeader back title="My preferences" /><Screen><Title subtitle="Help Wearify personalize what you see">Style Preferences</Title><Choice title="Occasions" values={OCCASIONS} selected={occasions} onPress={(v) => toggle(v, occasions, setOccasions)} /><Choice title="Fabrics" values={FABRICS} selected={fabrics} onPress={(v) => toggle(v, fabrics, setFabrics)} /><Text style={styles.heading}>Colors</Text><View style={styles.wrap}>{COLORS.map(([name, swatch]) => <Pressable key={name} onPress={() => toggle(name, selectedColors, setSelectedColors)} style={[styles.color, selectedColors.includes(name) && styles.selected]}><View style={[styles.swatch, { backgroundColor: swatch }]} /><Text style={styles.text}>{name}</Text></Pressable>)}</View><Choice title="Budget" values={BUDGETS} selected={budget ? [budget] : []} onPress={setBudget} /><Field label="Upcoming occasion" value={occasion} onChangeText={setOccasion} /><Field label="Occasion date (YYYY-MM-DD)" value={date} onChangeText={setDate} maxLength={10} /><Field label="Shopping city" value={city} onChangeText={setCity} /><PrimaryButton disabled={busy} onPress={() => void save()}>{busy ? "Saving…" : "Save preferences"}</PrimaryButton></Screen></>;
+}
+function Choice({ title, values, selected, onPress }: { title: string; values: string[]; selected: string[]; onPress: (value: string) => void }) { return <View style={styles.section}><Text style={styles.heading}>{title}</Text><View style={styles.wrap}>{values.map((value) => <Pressable key={value} accessibilityRole="checkbox" accessibilityState={{ checked: selected.includes(value) }} onPress={() => onPress(value)} style={[styles.pill, selected.includes(value) && styles.selected]}><Text style={[styles.text, selected.includes(value) && styles.selectedText]}>{value}</Text></Pressable>)}</View></View>; }
+const styles = StyleSheet.create({ section: { marginBottom: 22 }, heading: { color: colors.ink, fontFamily: "Montserrat_600SemiBold", fontSize: 15, marginBottom: 10 }, wrap: { flexDirection: "row", flexWrap: "wrap", gap: 9, marginBottom: 20 }, pill: { minHeight: 44, justifyContent: "center", paddingHorizontal: 15, borderRadius: radius.pill, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surface }, selected: { borderColor: colors.brand, backgroundColor: colors.brand }, selectedText: { color: "#FFFFFF" }, text: { color: colors.ink, fontFamily: "DMSans_600SemiBold", fontSize: 13 }, color: { minHeight: 44, paddingHorizontal: 12, borderRadius: radius.pill, borderWidth: 1, borderColor: colors.border, flexDirection: "row", alignItems: "center", gap: 7 }, swatch: { width: 17, height: 17, borderRadius: 9, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border } });

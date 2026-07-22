@@ -1,0 +1,19 @@
+import { useState } from "react";
+import { Alert, Linking, Pressable, Share, StyleSheet, Text, View } from "react-native";
+import { useRouter } from "expo-router";
+import { useMutation, useQuery } from "convex/react";
+import { api } from "@/src/convex/api";
+import { AppHeader, EmptyState, Field, Loading, PrimaryButton, Screen, SecondaryButton, Title } from "@/src/components/ui";
+import { makeReferralCode } from "@/src/lib/referral";
+import { useAuth } from "@/src/providers/auth";
+import { useIsOnline } from "@/src/providers/connectivity";
+import { colors, radius } from "@/src/theme/tokens";
+
+export default function ReferScreen() {
+  const router = useRouter(); const { token, user } = useAuth(); const online = useIsOnline(); const referrals = useQuery(api.customers.listReferrals, token && user ? { token, referrerId: user.customerId } : "skip"); const create = useMutation(api.customers.createReferral); const [name, setName] = useState(""); const [phone, setPhone] = useState(""); const [busy, setBusy] = useState(false);
+  if (!user || referrals === undefined) return <><AppHeader back title="Refer a friend" /><Loading /></>;
+  const referrer = user; const code = makeReferralCode(referrer.customerId); const link = `https://wearify-app.vercel.app/register?inviteCode=${code}`; const message = `Hey! Shop at any Wearify-powered store and we both get ₹500 credit. Use my code ${code} or sign up here: ${link}`;
+  async function submit() { if (!online) return Alert.alert("You’re offline", "Reconnect to send a referral."); if (!token || name.trim().length < 2 || phone.trim().length < 8) return; setBusy(true); try { await create({ token, referrerId: referrer.customerId, referrerPhone: referrer.phone, referredName: name.trim(), referredPhone: phone.trim(), status: "Pending", date: new Date().toLocaleDateString("en-IN", { year: "numeric", month: "short", day: "numeric" }) }); setName(""); setPhone(""); router.push("/c/me/refer/code"); } catch { Alert.alert("Couldn’t create referral", "Please check the phone number and try again."); } finally { setBusy(false); } }
+  return <><AppHeader back title="Refer a friend" /><Screen><Title subtitle="You and your friend can each earn ₹500 credit">Invite Friends</Title><Field label="Friend’s name" value={name} onChangeText={setName} /><Field label="Friend’s phone number" value={phone} onChangeText={setPhone} keyboardType="phone-pad" /><PrimaryButton disabled={busy || name.trim().length < 2 || phone.trim().length < 8} onPress={() => void submit()}>{busy ? "Sending…" : "Send referral"}</PrimaryButton><View style={{ height: 10 }} /><SecondaryButton onPress={() => void Share.share({ message })}>Share invitation</SecondaryButton><Pressable onPress={() => void Linking.openURL(`https://wa.me/?text=${encodeURIComponent(message)}`)}><Text style={styles.whatsapp}>Share on WhatsApp</Text></Pressable><Title>Referral History</Title>{referrals.length === 0 ? <EmptyState title="No referrals yet" detail="Invite a friend to start earning rewards." /> : referrals.map((referral) => <View style={styles.row} key={referral._id}><View style={{ flex: 1 }}><Text style={styles.name}>{referral.referredName ?? "Friend"}</Text><Text style={styles.meta}>{referral.referredPhone ?? referral.date}</Text></View><Text style={styles.status}>{referral.status ?? "Pending"}</Text></View>)}</Screen></>;
+}
+const styles = StyleSheet.create({ whatsapp: { padding: 16, textAlign: "center", color: "#178A3C", fontFamily: "Montserrat_600SemiBold" }, row: { minHeight: 66, marginBottom: 9, padding: 14, borderRadius: radius.md, borderWidth: 1, borderColor: colors.border, backgroundColor: colors.surface, flexDirection: "row", alignItems: "center" }, name: { color: colors.ink, fontFamily: "Montserrat_600SemiBold", fontSize: 14 }, meta: { marginTop: 3, color: colors.muted, fontFamily: "DMSans_400Regular", fontSize: 12 }, status: { color: colors.brand, fontFamily: "DMSans_600SemiBold", fontSize: 12 } });

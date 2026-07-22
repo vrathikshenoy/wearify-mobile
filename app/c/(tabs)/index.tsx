@@ -197,11 +197,11 @@ export default function HomeScreen() {
       <Pressable
         accessibilityRole="link"
         accessibilityLabel="Chat with us on WhatsApp"
-        className="absolute bottom-[40px] right-3 z-20 h-[60px] w-[132px]"
+        className="absolute bottom-[40px] right-3 z-20 h-[60px] w-[164px]"
         style={({ pressed }) => [whatsappShadow, pressed && { transform: [{ scale: 0.97 }] }]}
         onPress={() => void Linking.openURL("https://wa.me/?text=Hi%2C%20I%27d%20like%20some%20styling%20help%20on%20Wearify.")}
       >
-        <View className="absolute left-0 top-[13px] h-9 w-[96px] justify-center rounded-l-full bg-white pl-3 pr-5" style={styles.whatsappLabelShadow}>
+        <View className="absolute left-0 top-[13px] h-9 w-[116px] justify-center rounded-l-full bg-white pl-3.5 pr-6" style={styles.whatsappLabelShadow}>
           <Text className="font-montserrat-bold text-[9px] text-[#168C2A]">Chat With Us</Text>
         </View>
         <View className="absolute right-0 top-0 size-[60px] items-center justify-center rounded-full border-[3px] border-white bg-[#43D969]">

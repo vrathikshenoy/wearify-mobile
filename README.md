@@ -17,8 +17,9 @@ second backend.
 - Android App Links, iOS Universal Links, the `wearify://` scheme, tablet and
   landscape support, Expo Image, FlashList, and a skippable Expo Video ad.
 
-The source audit is in [docs/source-audit.md](docs/source-audit.md), and the
-migration decisions are in [docs/migration-plan.md](docs/migration-plan.md).
+The source audit is in [docs/source-audit.md](docs/source-audit.md), the mobile
+security baseline is in [docs/security.md](docs/security.md), and the migration
+decisions are in [docs/migration-plan.md](docs/migration-plan.md).
 
 ## Requirements
 
@@ -27,6 +28,16 @@ migration decisions are in [docs/migration-plan.md](docs/migration-plan.md).
 - Android Studio for local Android builds
 - macOS and Xcode for local iOS builds
 - An Expo account for EAS builds/updates
+
+The dependency baseline is Expo SDK 57, React Native 0.86, and React 19.2.3.
+Native packages stay on the versions selected by `expo install`; a newer npm
+version is not used when it falls outside Expo's compatibility set. Shared UI
+uses Uniwind with Tailwind CSS 4 and the Heritage Rose design tokens in
+`global.css`; screen-specific geometry stays in React Native `StyleSheet` where
+that is clearer. NativeWind and `react-native-css-interop` are not part of the
+production dependency graph. Review upgrades with the
+[Expo SDK reference](https://docs.expo.dev/versions/latest/) and
+[Expo upgrade guide](https://docs.expo.dev/workflow/upgrading-expo-sdk-walkthrough/).
 
 ## Local setup
 
@@ -48,6 +59,9 @@ EXPO_PUBLIC_WEB_URL=https://wearify-app.vercel.app
 Convex deployment URL belongs there—never OTP provider credentials, signing
 keys, admin tokens, or other secrets.
 
+Do not add `NODE_ENV` to EAS environment variables. Expo selects the correct
+bundle mode; forcing `NODE_ENV=production` can omit build-time dependencies.
+
 Run on a device/emulator with `pnpm android` or `pnpm ios`. Camera,
 SecureStore, Universal Links/App Links, and production notifications should be
 verified in a development or release build rather than relying only on Expo Go.
@@ -58,14 +72,12 @@ verified in a development or release build rather than relying only on Expo Go.
 pnpm typecheck
 pnpm test
 pnpm doctor
-pnpm expo export --platform android --output-dir /tmp/wearify-export
+NODE_ENV=production pnpm expo export --platform android --output-dir /tmp/wearify-export
 pnpm audit --prod
 ```
 
-The 2026-07-22 audit reports one moderate `uuid` advisory inherited through
-Expo's build/config toolchain (12 transitive paths). npm's forced remediation
-downgrades Expo to SDK 46, so it is intentionally not applied. Recheck after
-each Expo SDK patch and remove this note once upstream resolves it.
+The Expo build-only `xcode` parser is constrained to the patched UUID 11 API via
+`pnpm.overrides`. Keep this override until Expo removes its UUID 7 constraint.
 
 ## EAS builds and updates
 
@@ -85,6 +97,23 @@ pnpm dlx eas-cli@latest build --profile preview --platform all
 pnpm dlx eas-cli@latest build --profile production --platform all
 ```
 
+For a locally signed Android test APK on Linux, point `ANDROID_HOME` at a full
+Android SDK installation and run:
+
+```sh
+NODE_ENV=production \
+JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64 \
+ANDROID_HOME=/home/vrathik/Android/Sdk \
+ANDROID_SDK_ROOT=/home/vrathik/Android/Sdk \
+pnpm dlx eas-cli@latest build --platform android --profile preview --local \
+  --output ./wearify-preview.apk
+```
+
+The Play Store production artifact should use the production profile's default
+Android App Bundle (`.aab`), not the preview APK. The preview profile builds the
+two ARM ABIs used by physical Android phones; production keeps Expo's complete
+ABI set for store delivery.
+
 Publish an OTA update only when its native runtime is unchanged:
 
 ```sh
@@ -94,6 +123,41 @@ pnpm dlx eas-cli@latest update --channel production --message "Release notes"
 Before production OTA use, configure EAS Update code signing in the release
 account and keep the private signing key outside this repository. Native module,
 permission, app identifier, or runtime changes require new store binaries.
+
+## Versioned APK releases
+
+Releases are tag-driven, like most open-source Android apps. Push a semver tag
+and `.github/workflows/release-apk.yml` builds a universal APK and publishes a
+GitHub Release with it attached:
+
+```sh
+# bump app.json "version" if you want it as the local default, then:
+git tag v1.2.3
+git push origin v1.2.3
+```
+
+- `versionName` comes from the tag (`v1.2.3` → `1.2.3`); `versionCode` comes from
+  the CI run number so installs upgrade in place.
+- The APK is signed with a release keystore held in repo secrets. Without those
+  secrets the workflow still publishes a debug-signed APK and logs a warning.
+
+Repo configuration (Settings → Secrets and variables → Actions):
+
+| Kind     | Name                        | Value                                    |
+| -------- | --------------------------- | ---------------------------------------- |
+| Variable | `EXPO_PUBLIC_CONVEX_URL`    | public Convex deployment URL             |
+| Variable | `EXPO_PUBLIC_WEB_URL`       | `https://wearify-app.vercel.app`         |
+| Secret   | `ANDROID_KEYSTORE_BASE64`   | `base64 -w0 release.jks`                 |
+| Secret   | `ANDROID_KEYSTORE_PASSWORD` | keystore password                        |
+| Secret   | `ANDROID_KEY_ALIAS`         | key alias                                |
+| Secret   | `ANDROID_KEY_PASSWORD`      | key password                             |
+
+Generate a release keystore once and keep it out of the repo:
+
+```sh
+keytool -genkeypair -v -keystore release.jks -alias wearify \
+  -keyalg RSA -keysize 2048 -validity 10000
+```
 
 ## Deep links
 
@@ -130,6 +194,8 @@ after the signed builds are installed.
 
 ## Known intentional native differences
 
+- The Expo web target is a development preview and keeps credentials in memory
+  only; refresh signs out. The existing Next.js PWA remains the production web app.
 - The web-only IMG.LY WASM cutout generator is not bundled. Existing transparent
   cutouts are shown; otherwise the raw render or catalogue image is used.
 - Offline mode is safe reconnect mode, not an offline database: reads do not

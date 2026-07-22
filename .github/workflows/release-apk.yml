@@ -1,0 +1,87 @@
+name: Release APK
+
+# Push a semver tag to cut a release:  git tag v1.2.3 && git push origin v1.2.3
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write # create the GitHub Release
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      # Public, embedded-in-bundle values. Set as repo variables (Settings > Variables).
+      EXPO_PUBLIC_CONVEX_URL: ${{ vars.EXPO_PUBLIC_CONVEX_URL }}
+      EXPO_PUBLIC_WEB_URL: ${{ vars.EXPO_PUBLIC_WEB_URL }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Version name from tag
+        id: ver
+        run: echo "name=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.13.1
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Prebuild Android
+        env:
+          APP_VERSION_NAME: ${{ steps.ver.outputs.name }}
+          ANDROID_VERSION_CODE: ${{ github.run_number }}
+        run: pnpm expo prebuild --platform android --no-install
+
+      - name: Build release APK
+        working-directory: android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleRelease --no-daemon
+
+      - name: Sign & collect APK
+        id: apk
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          SRC=android/app/build/outputs/apk/release/app-release.apk
+          OUT="wearify-${{ steps.ver.outputs.name }}.apk"
+          if [ -n "${KEYSTORE_BASE64:-}" ]; then
+            BT=$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -n1)
+            echo "$KEYSTORE_BASE64" | base64 -d > release.jks
+            "$BT/zipalign" -f 4 "$SRC" aligned.apk
+            "$BT/apksigner" sign --ks release.jks \
+              --ks-pass env:KEYSTORE_PASSWORD \
+              --ks-key-alias "$KEY_ALIAS" \
+              --key-pass env:KEY_PASSWORD \
+              --out "$OUT" aligned.apk
+            "$BT/apksigner" verify --print-certs "$OUT"
+            rm -f release.jks aligned.apk
+          else
+            echo "::warning::No ANDROID_KEYSTORE_BASE64 secret — publishing the debug-signed APK. Add signing secrets for a release-signed build."
+            cp "$SRC" "$OUT"
+          fi
+          echo "path=$OUT" >> "$GITHUB_OUTPUT"
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ steps.apk.outputs.path }}
+          generate_release_notes: true
+          fail_on_unmatched_files: true

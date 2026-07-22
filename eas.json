@@ -1,9 +1,33 @@
 {
-  "cli": { "version": ">= 16.0.0" },
-  "build": {
-    "development": { "developmentClient": true, "distribution": "internal", "environment": "development", "pnpm": "11.13.1" },
-    "preview": { "distribution": "internal", "channel": "preview", "environment": "preview", "pnpm": "11.13.1" },
-    "production": { "autoIncrement": true, "channel": "production", "environment": "production", "pnpm": "11.13.1" }
+  "cli": {
+    "version": ">= 16.0.0",
+    "appVersionSource": "remote"
   },
-  "submit": { "production": {} }
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "environment": "development",
+      "pnpm": "11.13.1"
+    },
+    "preview": {
+      "distribution": "internal",
+      "channel": "preview",
+      "environment": "preview",
+      "env": {
+        "GRADLE_OPTS": "-Dorg.gradle.jvmargs=\"-Xmx4g -XX:MaxMetaspaceSize=1g -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8\" -Dorg.gradle.parallel=false -Dorg.gradle.workers.max=4 -Dorg.gradle.daemon=false",
+        "ORG_GRADLE_PROJECT_reactNativeArchitectures": "armeabi-v7a,arm64-v8a"
+      },
+      "pnpm": "11.13.1"
+    },
+    "production": {
+      "autoIncrement": true,
+      "channel": "production",
+      "environment": "production",
+      "pnpm": "11.13.1"
+    }
+  },
+  "submit": {
+    "production": {}
+  }
 }

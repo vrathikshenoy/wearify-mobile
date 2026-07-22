@@ -13,7 +13,8 @@ and OWASP mobile documentation.
 | Export/deletion | Export is user-confirmed, fetched on demand, written to cache, and shared through the OS; deletion is separately destructive-confirmed and signs out | Verify export contents/cleanup guidance and full server deletion/anonymization behavior |
 | Links | HTTPS App/Universal Links are constrained to the owned host and `/c`/`/register`; association templates require real signing identities | Verify AASA and Digital Asset Links on physical signed builds |
 | OTA | Runtime is tied to app version; EAS project binding and end-to-end update signing require release-account credentials | Generate the private key outside source control, embed only its certificate, and test invalid-signature rejection |
-| Dependencies | Exact pnpm lockfile, Expo Doctor, TypeScript, production Metro export, and pnpm audit are release gates | Track the current Expo transitive `uuid` advisory; do not force-downgrade Expo |
+| Android permissions | Camera, media, notifications, screen-capture detection, and network permissions come from used features; the unused overlay permission is blocked in app config | Inspect every signed release manifest with `aapt dump badging` |
+| Dependencies | Exact pnpm lockfile, Expo Doctor, TypeScript, production Metro export, and pnpm audit are release gates | Keep Expo-compatible pins and the patched UUID override until Expo removes its UUID 7 constraint |
 
 Primary references:
 
@@ -29,3 +30,13 @@ Primary references:
 Root/jailbreak detection is intentionally not an authorization control. Expo
 documents its device-root signal as experimental and bypassable; the existing
 server must continue to authorize every operation regardless of device state.
+
+## Release blockers
+
+1. Rotate the Android signing credential that appeared in shared local-build
+   output before production. Choose the EAS/Google Play rotation path that
+   matches whether this application is already enrolled in Play App Signing.
+2. Replace the association-file placeholders and verify App/Universal Links on
+   signed physical-device builds.
+3. Configure EAS Update end-to-end code signing before publishing production
+   OTA updates, or do not publish OTA updates until it is configured.

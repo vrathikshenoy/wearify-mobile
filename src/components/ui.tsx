@@ -5,7 +5,6 @@ import {
   Platform,
   Pressable,
   ScrollView,
-  StyleSheet,
   Text,
   TextInput,
   View,
@@ -15,19 +14,27 @@ import {
 } from "react-native";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
-import { ArrowLeft, Bell } from "lucide-react-native";
-import { colors, radius, spacing } from "@/src/theme/tokens";
+import { Bell } from "lucide-react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { colors } from "@/src/theme/tokens";
 
 export function AppFrame({ children }: PropsWithChildren) {
-  return <View className="flex-1 items-center bg-[#F3ECE0]"><View className="w-full max-w-[720px] flex-1 bg-canvas">{children}</View></View>;
+  return (
+    <View className="flex-1 items-center bg-cx-bg-deep sm:px-4 sm:py-6">
+      <View className="w-full max-w-[720px] flex-1 overflow-hidden bg-cx-bg sm:rounded-cx-xl">
+        {children}
+      </View>
+    </View>
+  );
 }
 
 export function Screen({ children, contentContainerStyle, ...props }: PropsWithChildren<ScrollViewProps>) {
   return (
-    <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === "ios" ? "padding" : undefined}>
+    <KeyboardAvoidingView className="flex-1" behavior={Platform.OS === "ios" ? "padding" : undefined}>
       <ScrollView
         keyboardShouldPersistTaps="handled"
-        contentContainerStyle={[styles.screen, contentContainerStyle]}
+        contentContainerClassName="grow px-4 pb-28"
+        contentContainerStyle={contentContainerStyle}
         {...props}
       >
         {children}
@@ -36,24 +43,45 @@ export function Screen({ children, contentContainerStyle, ...props }: PropsWithC
   );
 }
 
-export function Brand({ light = false, size = 28 }: { light?: boolean; size?: number }) {
-  return <Text accessibilityRole="header" style={[styles.brand, { color: light ? "#F2E4DA" : colors.brand, fontSize: size }]}>WEARIFY</Text>;
+export function Brand({ light = false, size = 23, width }: { light?: boolean; size?: number; width?: number }) {
+  const imageWidth = width ?? size * 5;
+  return (
+    <Image
+      source={require("@/assets/brand/wearify-logo.svg")}
+      style={{ width: imageWidth, aspectRatio: 395.69 / 63.6 }}
+      contentFit="contain"
+      tintColor={light ? "#F2E4DA" : colors.brand}
+      accessibilityLabel="Wearify"
+    />
+  );
 }
 
-export function AppHeader({ title, back = false, right }: { title?: string; back?: boolean; right?: ReactNode }) {
+export function AppHeader({ title, back = false, right, onBack }: { title?: string; back?: boolean; right?: ReactNode; onBack?: () => void }) {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
   return (
-    <View style={styles.header}>
-      <View style={styles.headerSide}>
+    <View
+      accessibilityLabel={title}
+      className="relative flex-row items-center justify-between border-b border-[#D9D9D9] bg-cx-surface px-4"
+      style={{ height: insets.top + 59, paddingTop: insets.top + 14 }}
+    >
+      <View className="w-11 items-start">
         {back ? (
-          <Pressable accessibilityRole="button" accessibilityLabel="Back" hitSlop={12} onPress={() => router.back()}>
-            <ArrowLeft color={colors.ink} size={22} />
+          <Pressable accessibilityRole="button" accessibilityLabel="Back" hitSlop={12} onPress={onBack ?? (() => router.back())}>
+            <Image source={require("@/assets/customer/back-navigation.svg")} style={{ width: 22, height: 18 }} contentFit="contain" tintColor="#222222" />
           </Pressable>
         ) : null}
       </View>
-      {title ? <Text style={styles.headerTitle}>{title}</Text> : <Brand size={23} />}
-      <View style={[styles.headerSide, styles.headerRight]}>
-        {right ?? <Pressable accessibilityRole="button" accessibilityLabel="Notifications unavailable" hitSlop={12}><Bell color={colors.ink} size={20} /></Pressable>}
+      <View pointerEvents="none" className="absolute inset-x-0 bottom-0 h-[45px] items-center justify-center">
+        {title ? <Text className="font-dm-bold text-base text-[#2A2522]">{title}</Text> : <Brand width={116} />}
+      </View>
+      <View className="w-11 items-end">
+        {right ?? (title ? null : (
+          <Pressable accessibilityRole="button" accessibilityLabel="Notifications" hitSlop={12} className="relative">
+            <Bell color="#222222" strokeWidth={1.5} size={19} />
+            <View className="absolute right-0 top-0 size-[5px] rounded-full bg-cx-primary" />
+          </Pressable>
+        ))}
       </View>
     </View>
   );
@@ -61,9 +89,9 @@ export function AppHeader({ title, back = false, right }: { title?: string; back
 
 export function Title({ children, subtitle }: PropsWithChildren<{ subtitle?: string }>) {
   return (
-    <View style={styles.titleBlock}>
-      <Text style={styles.title}>{children}</Text>
-      {subtitle ? <Text style={styles.subtitle}>{subtitle}</Text> : null}
+    <View className="mb-5 mt-6">
+      <Text className="font-display-bold text-[32px] leading-[37px] text-cx-ink">{children}</Text>
+      {subtitle ? <Text className="mt-1 font-dm text-sm leading-5 text-cx-ink-soft">{subtitle}</Text> : null}
     </View>
   );
 }
@@ -73,78 +101,66 @@ export function PrimaryButton({ children, disabled, style, ...props }: PropsWith
     <Pressable
       accessibilityRole="button"
       disabled={disabled}
-      style={({ pressed }) => [styles.primaryButton, disabled && styles.disabled, pressed && !disabled && styles.pressed, typeof style === "function" ? style({ pressed }) : style]}
+      className="min-h-[52px] items-center justify-center rounded-full bg-cx-primary px-[22px] disabled:opacity-50"
+      style={(state) => [state.pressed && !disabled && pressedStyle, typeof style === "function" ? style(state) : style]}
       {...props}
     >
-      <Text style={styles.primaryButtonText}>{children}</Text>
+      <Text className="font-montserrat-semibold text-[15px] text-white">{children}</Text>
     </Pressable>
   );
 }
 
 export function SecondaryButton({ children, style, ...props }: PropsWithChildren<PressableProps>) {
   return (
-    <Pressable accessibilityRole="button" style={({ pressed }) => [styles.secondaryButton, pressed && styles.pressed, typeof style === "function" ? style({ pressed }) : style]} {...props}>
-      <Text style={styles.secondaryButtonText}>{children}</Text>
+    <Pressable
+      accessibilityRole="button"
+      className="min-h-[50px] items-center justify-center rounded-full border border-cx-primary px-[22px]"
+      style={(state) => [state.pressed && pressedStyle, typeof style === "function" ? style(state) : style]}
+      {...props}
+    >
+      <Text className="font-montserrat-semibold text-[15px] text-cx-primary">{children}</Text>
     </Pressable>
   );
 }
 
-export function Field({ label, error, ...props }: TextInputProps & { label: string; error?: string }) {
+export function Field({ label, error, multiline, style, ...props }: TextInputProps & { label: string; error?: string }) {
   return (
-    <View style={styles.fieldWrap}>
-      <Text style={styles.label}>{label}</Text>
+    <View className="mb-4 gap-1.5">
+      <Text className="font-dm-semibold text-[13px] text-cx-ink-mid">{label}</Text>
       <TextInput
-        placeholderTextColor={colors.ghost}
-        style={[styles.field, Boolean(error) && styles.fieldError, props.multiline && styles.multiline]}
+        placeholderTextColor="#77685D"
+        className={`min-h-[52px] rounded-cx-md border bg-cx-surface px-3.5 font-dm text-base text-cx-ink ${error ? "border-cx-error" : "border-cx-border"} ${multiline ? "min-h-[110px] pt-3.5" : ""}`}
+        style={[multiline && { textAlignVertical: "top" }, style]}
         accessibilityLabel={label}
+        multiline={multiline}
         {...props}
       />
-      {error ? <Text accessibilityRole="alert" style={styles.errorText}>{error}</Text> : null}
+      {error ? <Text accessibilityRole="alert" className="font-dm text-xs text-cx-error">{error}</Text> : null}
     </View>
   );
 }
 
 export function Loading({ label = "Loading…" }: { label?: string }) {
-  return <View style={styles.center}><ActivityIndicator color={colors.brand} /><Text style={styles.helper}>{label}</Text></View>;
+  return (
+    <View className="min-h-[180px] flex-1 items-center justify-center gap-2.5">
+      <ActivityIndicator color={colors.brand} />
+      <Text className="font-dm text-[13px] text-cx-ink-soft">{label}</Text>
+    </View>
+  );
 }
 
 export function EmptyState({ title, detail }: { title: string; detail?: string }) {
-  return <View style={styles.empty}><Text style={styles.emptyTitle}>{title}</Text>{detail ? <Text style={styles.helper}>{detail}</Text> : null}</View>;
+  return (
+    <View className="min-h-[180px] items-center justify-center rounded-cx-lg border border-cx-border bg-cx-surface p-6">
+      <Text className="text-center font-montserrat-semibold text-base text-cx-ink">{title}</Text>
+      {detail ? <Text className="mt-2 text-center font-dm text-[13px] text-cx-ink-soft">{detail}</Text> : null}
+    </View>
+  );
 }
 
 export function RemoteImage({ uri, style, accessibilityLabel }: { uri?: string | null; style?: object; accessibilityLabel: string }) {
-  if (!uri) return <View style={[styles.imageFallback, style]}><Brand size={15} /></View>;
+  if (!uri) return <View className="items-center justify-center bg-cx-primary-ghost" style={style}><Brand size={15} /></View>;
   return <Image source={{ uri }} style={style} contentFit="cover" transition={180} accessibilityLabel={accessibilityLabel} />;
 }
 
-const styles = StyleSheet.create({
-  flex: { flex: 1 },
-  screen: { paddingHorizontal: 16, paddingBottom: 112, flexGrow: 1 },
-  brand: { fontFamily: "CormorantGaramond_700Bold", letterSpacing: 1.8 },
-  header: { height: 64, paddingHorizontal: 16, flexDirection: "row", alignItems: "center", borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border, backgroundColor: colors.canvas },
-  headerSide: { width: 44, alignItems: "flex-start" },
-  headerRight: { alignItems: "flex-end" },
-  headerTitle: { flex: 1, textAlign: "center", color: colors.ink, fontFamily: "Montserrat_600SemiBold", fontSize: 16 },
-  titleBlock: { marginTop: 24, marginBottom: 20 },
-  title: { fontFamily: "CormorantGaramond_700Bold", color: colors.ink, fontSize: 32, lineHeight: 37 },
-  subtitle: { marginTop: 4, fontFamily: "DMSans_400Regular", color: colors.muted, fontSize: 14, lineHeight: 20 },
-  primaryButton: { minHeight: 52, borderRadius: radius.pill, backgroundColor: colors.brand, alignItems: "center", justifyContent: "center", paddingHorizontal: 22 },
-  primaryButtonText: { color: "#FFFFFF", fontFamily: "Montserrat_600SemiBold", fontSize: 15 },
-  secondaryButton: { minHeight: 50, borderRadius: radius.pill, borderWidth: 1, borderColor: colors.brand, alignItems: "center", justifyContent: "center", paddingHorizontal: 22 },
-  secondaryButtonText: { color: colors.brand, fontFamily: "Montserrat_600SemiBold", fontSize: 15 },
-  pressed: { transform: [{ scale: 0.98 }], opacity: 0.92 },
-  disabled: { opacity: 0.5 },
-  fieldWrap: { gap: 6, marginBottom: 16 },
-  label: { fontFamily: "DMSans_600SemiBold", color: colors.inkMid, fontSize: 13 },
-  field: { minHeight: 52, borderWidth: 1, borderColor: colors.border, borderRadius: radius.md, backgroundColor: colors.surface, paddingHorizontal: 14, color: colors.ink, fontFamily: "DMSans_400Regular", fontSize: 16 },
-  multiline: { minHeight: 110, paddingTop: 14, textAlignVertical: "top" },
-  fieldError: { borderColor: colors.error },
-  errorText: { color: colors.error, fontFamily: "DMSans_400Regular", fontSize: 12 },
-  center: { flex: 1, minHeight: 180, alignItems: "center", justifyContent: "center", gap: 10 },
-  empty: { minHeight: 180, borderWidth: 1, borderColor: colors.border, borderRadius: radius.lg, backgroundColor: colors.surface, alignItems: "center", justifyContent: "center", padding: spacing.lg },
-  emptyTitle: { fontFamily: "Montserrat_600SemiBold", color: colors.ink, fontSize: 16, textAlign: "center" },
-  helper: { fontFamily: "DMSans_400Regular", color: colors.muted, fontSize: 13, textAlign: "center" },
-  imageFallback: { alignItems: "center", justifyContent: "center", backgroundColor: colors.brandSoft },
-});
-
-export const uiStyles = styles;
+const pressedStyle = { transform: [{ scale: 0.98 }], opacity: 0.92 } as const;

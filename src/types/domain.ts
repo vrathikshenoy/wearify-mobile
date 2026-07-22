@@ -89,6 +89,7 @@ export type Saree = {
   colors?: string[];
   region?: string;
   weave?: string;
+  border?: string;
   type?: string;
   description?: string;
   careInstructions?: string;
@@ -101,6 +102,7 @@ export type Saree = {
 
 export type WishlistItem = {
   _id: Id<"wishlist">;
+  _creationTime?: number;
   sareeId: SareeId;
   storeId: string;
   sareeName: string;
@@ -136,6 +138,7 @@ export type LoyaltyTransaction = {
   reason?: string;
   type?: string;
   storeName?: string;
+  storeId?: string;
 };
 
 export type Referral = {

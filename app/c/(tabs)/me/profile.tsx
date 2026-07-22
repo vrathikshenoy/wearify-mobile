@@ -1,84 +1,67 @@
-import { useEffect, useState } from "react";
-import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
+import { useEffect, useMemo, useState } from "react";
+import { Alert, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import DateTimePicker from "@react-native-community/datetimepicker";
+import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
 import { useMutation, useQuery } from "convex/react";
-import { Camera } from "lucide-react-native";
+import { Check } from "lucide-react-native";
 import { api } from "@/src/convex/api";
-import { ConvexImage } from "@/src/components/media";
-import { AppHeader, Field, Loading, PrimaryButton, Screen, Title } from "@/src/components/ui";
+import { AppHeader, Loading } from "@/src/components/ui";
 import { useAuth } from "@/src/providers/auth";
 import { useIsOnline } from "@/src/providers/connectivity";
-import { colors, radius } from "@/src/theme/tokens";
 import type { FileId } from "@/src/types/domain";
 
+const MAROON = "#6E262B";
 const genders = [["female", "Female"], ["male", "Male"], ["other", "Other"], ["prefer_not_to_say", "Prefer not to say"]] as const;
+const cmToFtIn = (cm: number) => { const total = cm / 2.54; let ft = Math.floor(total / 12); let inch = Math.round(total - ft * 12); if (inch === 12) { ft += 1; inch = 0; } return { ft, inch }; };
+const ftInToCm = (ft: number, inch: number) => Math.round((ft * 12 + inch) * 2.54);
 
 export default function ProfileScreen() {
-  const { token, user } = useAuth();
-  const online = useIsOnline();
+  const { token, user } = useAuth(); const online = useIsOnline();
   const customer = useQuery(api.customers.getById, token && user ? { token, customerId: user.customerId } : "skip");
-  const update = useMutation(api.customers.updateProfile);
-  const uploadUrl = useMutation(api.files.generateUploadUrl);
-  const [name, setName] = useState(""); const [dob, setDob] = useState(""); const [gender, setGender] = useState("");
-  const [height, setHeight] = useState("160"); const [city, setCity] = useState(""); const [email, setEmail] = useState("");
-  const [photo, setPhoto] = useState<FileId>(); const [busy, setBusy] = useState(false); const [error, setError] = useState("");
+  const update = useMutation(api.customers.updateProfile); const uploadUrl = useMutation(api.files.generateUploadUrl);
+  const [name, setName] = useState(""); const [dob, setDob] = useState(""); const [gender, setGender] = useState(""); const [heightCm, setHeightCm] = useState(160); const [heightUnit, setHeightUnit] = useState<"cm" | "ftin">("cm"); const [feet, setFeet] = useState("5"); const [inches, setInches] = useState("3"); const [city, setCity] = useState(""); const [email, setEmail] = useState(""); const [photo, setPhoto] = useState<FileId>(); const [busy, setBusy] = useState(false); const [error, setError] = useState(""); const [dirty, setDirty] = useState(false); const [showDate, setShowDate] = useState(false); const [toast, setToast] = useState("");
+  const photoUrl = useQuery(api.files.getUrl, photo ? { fileId: photo } : "skip");
 
-  useEffect(() => { if (!customer) return; setName(customer.name ?? ""); setDob(customer.dateOfBirth ?? ""); setGender(customer.gender ?? ""); setHeight(String(customer.heightCm ?? 160)); setCity(customer.city ?? ""); setEmail(customer.email ?? ""); setPhoto(customer.photoFileId); }, [customer]);
+  useEffect(() => { if (!customer) return; setName(customer.name || ""); setDob(customer.dateOfBirth || ""); setGender(customer.gender || ""); const cm = customer.heightCm || 160; setHeightCm(cm); const converted = cmToFtIn(cm); setFeet(String(converted.ft)); setInches(String(converted.inch)); setHeightUnit(customer.heightUnit === "ftin" ? "ftin" : "cm"); setCity(customer.city || ""); setEmail(customer.email || ""); setPhoto(customer.photoFileId); }, [customer]);
+  const initials = useMemo(() => name.split(/\s+/).filter(Boolean).map((word) => word[0]).join("").toUpperCase().slice(0, 2) || "U", [name]);
+  const maskedPhone = user?.phone ? `${user.phone.slice(0, 8)}XXXX${user.phone.slice(-2)}` : "";
+  const mark = (setter: (value: string) => void) => (value: string) => { setter(value); setDirty(true); };
 
   async function pick(source: "camera" | "library") {
     if (!online) return setError("Reconnect to upload a photo.");
     const permission = source === "camera" ? await ImagePicker.requestCameraPermissionsAsync() : await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permission.granted) return setError("Photo permission is required.");
-    const result = source === "camera"
-      ? await ImagePicker.launchCameraAsync({ mediaTypes: ["images"], allowsEditing: true, aspect: [1, 1], quality: 0.85 })
-      : await ImagePicker.launchImageLibraryAsync({ mediaTypes: ["images"], allowsEditing: true, aspect: [1, 1], quality: 0.85 });
-    if (result.canceled) return;
-    const asset = result.assets[0];
-    if (!asset) return;
-    const mime = asset.mimeType ?? "image/jpeg";
-    if (!["image/jpeg", "image/png", "image/webp"].includes(mime)) return setError("Use a JPEG, PNG, or WebP image.");
-    if ((asset.fileSize ?? 0) > 4 * 1024 * 1024) return setError("Photo must be under 4 MB.");
-    setBusy(true); setError("");
-    try {
-      const destination = await uploadUrl({ token: token ?? undefined });
-      const blob = await (await fetch(asset.uri)).blob();
-      const response = await fetch(destination, { method: "POST", headers: { "Content-Type": mime }, body: blob });
-      if (!response.ok) throw new Error("Upload failed");
-      const payload: unknown = await response.json();
-      if (!payload || typeof payload !== "object" || !("storageId" in payload) || typeof payload.storageId !== "string") throw new Error("Invalid upload response");
-      setPhoto(payload.storageId as FileId);
-    } catch { setError("Photo upload failed. Please try again."); } finally { setBusy(false); }
+    const result = source === "camera" ? await ImagePicker.launchCameraAsync({ mediaTypes: ["images"], allowsEditing: true, aspect: [1, 1], quality: 0.85 }) : await ImagePicker.launchImageLibraryAsync({ mediaTypes: ["images"], allowsEditing: true, aspect: [1, 1], quality: 0.85 });
+    const asset = result.canceled ? undefined : result.assets[0]; if (!asset) return;
+    const mime = asset.mimeType || "image/jpeg"; if (!["image/jpeg", "image/png", "image/webp"].includes(mime)) return setError("Use a JPEG, PNG, or WebP image."); if ((asset.fileSize || 0) > 4 * 1024 * 1024) return setError("Photo must be under 4 MB.");
+    setBusy(true); setError(""); try { const destination = await uploadUrl({ token: token || undefined }); const blob = await (await fetch(asset.uri)).blob(); const response = await fetch(destination, { method: "POST", headers: { "Content-Type": mime }, body: blob }); if (!response.ok) throw new Error("Upload failed"); const payload: unknown = await response.json(); if (!payload || typeof payload !== "object" || !("storageId" in payload) || typeof payload.storageId !== "string") throw new Error("Invalid upload response"); setPhoto(payload.storageId as FileId); setDirty(true); } catch { setError("Photo upload failed. Please try again."); } finally { setBusy(false); }
   }
 
   async function save() {
-    const heightCm = Number(height); const cleanName = name.trim(); const cleanCity = city.trim();
-    const birthday = /^\d{4}-\d{2}-\d{2}$/.test(dob) ? new Date(`${dob}T00:00:00`) : null;
-    const age = birthday && !Number.isNaN(birthday.getTime()) ? new Date().getFullYear() - birthday.getFullYear() : 0;
-    if (cleanName.length < 2) return setError("Enter your full name.");
-    if (!birthday || age < 13 || age > 120) return setError("Enter a valid birth date as YYYY-MM-DD.");
-    if (!gender) return setError("Select a gender.");
-    if (!Number.isFinite(heightCm) || heightCm < 120 || heightCm > 220) return setError("Height must be between 120 and 220 cm.");
-    if (!cleanCity) return setError("Enter your city.");
-    if (email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) return setError("Enter a valid email.");
-    if (!online) return setError("Reconnect to save changes.");
-    if (!token || !user) return;
-    setBusy(true); setError("");
-    try { await update({ token, customerId: user.customerId, name: cleanName, initials: cleanName.split(/\s+/).map((word) => word[0]).join("").toUpperCase().slice(0, 2), dateOfBirth: dob, gender, heightCm, heightUnit: "cm", city: cleanCity, email: email.trim() || undefined, photoFileId: photo }); Alert.alert("Saved", "Your profile has been updated."); }
-    catch { setError("Couldn’t save your profile. Please try again."); } finally { setBusy(false); }
+    const cleanName = name.trim(), cleanCity = city.trim(); const birthday = /^\d{4}-\d{2}-\d{2}$/.test(dob) ? new Date(`${dob}T00:00:00`) : null; const age = birthday && !Number.isNaN(birthday.getTime()) ? new Date().getFullYear() - birthday.getFullYear() : 0;
+    if (cleanName.length < 2) return setError("Enter your full name"); if (!birthday || age < 13 || age > 120) return setError("Enter a valid date of birth"); if (!gender) return setError("Select a gender"); if (heightCm < 120 || heightCm > 220) return setError("Height must be between 120-220 cm"); if (!cleanCity) return setError("Enter your city"); if (email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) return setError("Enter a valid email"); if (!online) return setError("Reconnect to save changes."); if (!token || !user) return;
+    setBusy(true); setError(""); try { await update({ token, customerId: user.customerId, name: cleanName, initials, dateOfBirth: dob, gender, heightCm, heightUnit, city: cleanCity, email: email.trim() || undefined, photoFileId: photo }); setDirty(false); setToast("Profile updated"); setTimeout(() => setToast(""), 2500); } catch { setError("Failed to save"); } finally { setBusy(false); }
   }
 
-  if (customer === undefined) return <><AppHeader back title="Edit profile" /><Loading /></>;
-  return <><AppHeader back title="Edit profile" /><Screen><Title>Profile details</Title>
-    <View style={styles.avatarWrap}><ConvexImage fileId={photo} label="Profile photo" style={styles.avatar} /><Pressable accessibilityRole="button" accessibilityLabel="Change profile photo" style={styles.camera} onPress={() => Alert.alert("Profile photo", undefined, [{ text: "Take photo", onPress: () => void pick("camera") }, { text: "Choose from library", onPress: () => void pick("library") }, { text: "Cancel", style: "cancel" }])}><Camera color="#FFFFFF" size={18} /></Pressable></View>
-    <Field label="Full name" value={name} onChangeText={setName} autoCapitalize="words" />
-    <Field label="Phone number" value={user?.phone ?? ""} editable={false} />
-    <Field label="Date of birth (YYYY-MM-DD)" value={dob} onChangeText={setDob} keyboardType="numbers-and-punctuation" maxLength={10} />
-    <Text style={styles.label}>Gender</Text><View style={styles.chips}>{genders.map(([value, label]) => <Pressable key={value} accessibilityRole="radio" accessibilityState={{ checked: gender === value }} onPress={() => setGender(value)} style={[styles.chip, gender === value && styles.chipOn]}><Text style={[styles.chipText, gender === value && styles.chipTextOn]}>{label}</Text></Pressable>)}</View>
-    <Field label="Height (cm)" value={height} onChangeText={setHeight} keyboardType="number-pad" maxLength={3} />
-    <Field label="City" value={city} onChangeText={setCity} autoCapitalize="words" />
-    <Field label="Email (optional)" value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" />
-    {error ? <Text accessibilityRole="alert" style={styles.error}>{error}</Text> : null}<PrimaryButton disabled={busy} onPress={() => void save()}>{busy ? "Saving…" : "Save changes"}</PrimaryButton>
-  </Screen></>;
+  if (customer === undefined) return <><AppHeader back title="EDIT PROFILE" /><Loading /></>;
+  const converted = cmToFtIn(heightCm);
+  return <View style={styles.page}><AppHeader back title="EDIT PROFILE" /><ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+    <Pressable style={styles.avatarWrap} onPress={() => Alert.alert("Profile photo", undefined, [{ text: "Take photo", onPress: () => void pick("camera") }, { text: "Choose from library", onPress: () => void pick("library") }, { text: "Cancel", style: "cancel" }])}><View style={styles.avatar}>{photoUrl ? <Image source={{ uri: photoUrl }} style={styles.avatarImage} contentFit="cover" /> : <Text style={styles.initials}>{initials}</Text>}{busy ? <View style={styles.uploading}><Text style={styles.uploadingText}>Uploading…</Text></View> : null}</View><View style={styles.camera}><Image source={require("@/assets/customer/profile/camera.svg")} style={{ width: 24, height: 21 }} contentFit="contain" /></View></Pressable>
+    {error ? <Text accessibilityRole="alert" style={styles.error}>{error}</Text> : null}
+    <FormField label="Full Name"><TextInput style={styles.field} value={name} onChangeText={mark(setName)} /></FormField>
+    <FormField label="Phone number"><TextInput editable={false} style={[styles.field, styles.disabledField]} value={maskedPhone} /></FormField>
+    <FormField label="Date of Birth"><Pressable style={styles.fieldButton} onPress={() => setShowDate(true)}><Text style={styles.fieldText}>{dob || "Select date"}</Text></Pressable></FormField>
+    <FormField label="Gender"><View style={styles.genderGrid}>{genders.map(([value, label]) => <Pressable key={value} style={[styles.gender, gender === value && styles.genderActive]} onPress={() => { setGender(value); setDirty(true); }}><Text style={[styles.genderText, gender === value && styles.genderTextActive]}>{label}</Text></Pressable>)}</View></FormField>
+    <View style={styles.heightHead}><Text style={styles.label}>Height</Text><View style={styles.unitSwitch}>{(["cm", "ftin"] as const).map((unit) => <Pressable key={unit} style={[styles.unit, heightUnit === unit && styles.unitActive]} onPress={() => { setHeightUnit(unit); setDirty(true); }}><Text style={[styles.unitText, heightUnit === unit && styles.unitTextActive]}>{unit === "cm" ? "cm" : "ft/in"}</Text></Pressable>)}</View></View>
+    {heightUnit === "cm" ? <TextInput keyboardType="number-pad" style={styles.field} value={String(heightCm)} onChangeText={(value) => { const number = Number(value); if (Number.isFinite(number)) { setHeightCm(number); const next = cmToFtIn(number); setFeet(String(next.ft)); setInches(String(next.inch)); } setDirty(true); }} /> : <View style={styles.heightRow}><View style={styles.heightInputWrap}><TextInput keyboardType="number-pad" style={styles.field} value={feet} onChangeText={(value) => { setFeet(value); const cm = ftInToCm(Number(value) || 0, Number(inches) || 0); setHeightCm(cm); setDirty(true); }} /><Text style={styles.suffix}>ft</Text></View><View style={styles.heightInputWrap}><TextInput keyboardType="number-pad" style={styles.field} value={inches} onChangeText={(value) => { setInches(value); const cm = ftInToCm(Number(feet) || 0, Number(value) || 0); setHeightCm(cm); setDirty(true); }} /><Text style={styles.suffix}>in</Text></View></View>}
+    <Text style={styles.helper}>{heightUnit === "cm" ? `${converted.ft}ft ${converted.inch}in` : `${heightCm} cm`}</Text>
+    <FormField label="City"><TextInput style={styles.field} value={city} onChangeText={mark(setCity)} /></FormField>
+    <FormField label="Email (optional)"><TextInput keyboardType="email-address" autoCapitalize="none" placeholder="you@example.com" placeholderTextColor="#9A8F8A" style={styles.field} value={email} onChangeText={mark(setEmail)} /></FormField>
+    <Pressable disabled={busy || !dirty} style={[styles.save, (busy || !dirty) && styles.saveDisabled]} onPress={() => void save()}><Text style={styles.saveText}>{busy ? "Saving…" : dirty ? "Save Changes" : "Saved"}</Text>{!dirty && !busy ? <Check size={18} color="#FFFFFF" strokeWidth={2.6} /> : null}</Pressable>
+  </ScrollView>{showDate ? <DateTimePicker value={dob ? new Date(`${dob}T00:00:00`) : new Date(2000, 0, 1)} mode="date" maximumDate={new Date(new Date().setFullYear(new Date().getFullYear() - 13))} onChange={(_, selected) => { setShowDate(Platform.OS === "ios"); if (selected) { setDob(selected.toISOString().slice(0, 10)); setDirty(true); } }} /> : null}{toast ? <View style={styles.toast}><Text style={styles.toastText}>{toast}</Text></View> : null}</View>;
 }
 
-const styles = StyleSheet.create({ avatarWrap: { alignSelf: "center", marginBottom: 24 }, avatar: { width: 104, height: 104, borderRadius: 52 }, camera: { position: "absolute", right: -2, bottom: -2, width: 38, height: 38, borderRadius: 19, alignItems: "center", justifyContent: "center", backgroundColor: colors.brand, borderWidth: 3, borderColor: colors.canvas }, label: { color: colors.inkMid, fontFamily: "DMSans_600SemiBold", fontSize: 13, marginBottom: 8 }, chips: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginBottom: 18 }, chip: { minHeight: 44, paddingHorizontal: 14, borderRadius: radius.pill, borderWidth: 1, borderColor: colors.border, alignItems: "center", justifyContent: "center" }, chipOn: { backgroundColor: colors.brand, borderColor: colors.brand }, chipText: { color: colors.ink, fontFamily: "DMSans_600SemiBold", fontSize: 13 }, chipTextOn: { color: "#FFFFFF" }, error: { color: colors.error, fontFamily: "DMSans_400Regular", marginBottom: 14 } });
+function FormField({ label, children }: { label: string; children: React.ReactNode }) { return <View style={styles.formField}><Text style={styles.label}>{label}</Text>{children}</View>; }
+
+const styles = StyleSheet.create({ page: { flex: 1, backgroundColor: "#FFFFFF" }, content: { paddingHorizontal: 18, paddingTop: 22, paddingBottom: 36 }, avatarWrap: { width: 104, height: 104, marginBottom: 24, alignSelf: "center" }, avatar: { width: 104, height: 104, overflow: "hidden", borderRadius: 52, borderWidth: 6, borderColor: "#FBF3E8", backgroundColor: "#F4ECE3", alignItems: "center", justifyContent: "center", shadowColor: MAROON, shadowOpacity: 0.12, shadowRadius: 13, shadowOffset: { width: 0, height: 10 }, elevation: 4 }, avatarImage: { width: "100%", height: "100%" }, initials: { fontFamily: "DMSans_700Bold", fontSize: 34, color: MAROON }, uploading: { position: "absolute", inset: 0, backgroundColor: "rgba(0,0,0,0.4)", alignItems: "center", justifyContent: "center" }, uploadingText: { fontFamily: "DMSans_500Medium", fontSize: 10, color: "#FFFFFF" }, camera: { position: "absolute", right: -2, bottom: -2, width: 44, height: 44, borderRadius: 22, backgroundColor: "#FBF3E8", alignItems: "center", justifyContent: "center", elevation: 3 }, error: { marginBottom: 16, paddingHorizontal: 14, paddingVertical: 10, borderRadius: 10, backgroundColor: "#FBE4E8", fontFamily: "DMSans_600SemiBold", fontSize: 13, color: "#B3261E" }, formField: { marginBottom: 18 }, label: { marginBottom: 8, fontFamily: "DMSans_700Bold", fontSize: 13.5, color: "#2A2522" }, field: { height: 52, paddingHorizontal: 16, borderRadius: 12, borderWidth: 1.5, borderColor: "rgba(104,38,42,0.14)", backgroundColor: "#FFFFFF", fontFamily: "DMSans_500Medium", fontSize: 16, color: "#2A2522" }, disabledField: { color: "#9A8F8A", backgroundColor: "#FAF7F5" }, fieldButton: { height: 52, paddingHorizontal: 16, borderRadius: 12, borderWidth: 1.5, borderColor: "rgba(104,38,42,0.14)", justifyContent: "center" }, fieldText: { fontFamily: "DMSans_500Medium", fontSize: 16, color: "#2A2522" }, genderGrid: { flexDirection: "row", flexWrap: "wrap", gap: 10 }, gender: { width: "48%", height: 50, borderRadius: 12, borderWidth: 1.5, borderColor: "rgba(104,38,42,0.16)", alignItems: "center", justifyContent: "center" }, genderActive: { borderColor: MAROON, backgroundColor: MAROON }, genderText: { fontFamily: "DMSans_600SemiBold", fontSize: 14, color: "#2A2522" }, genderTextActive: { color: "#FFFFFF" }, heightHead: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" }, unitSwitch: { padding: 3, borderRadius: 20, backgroundColor: "#F4ECE3", flexDirection: "row" }, unit: { paddingHorizontal: 14, paddingVertical: 5, borderRadius: 16 }, unitActive: { backgroundColor: MAROON }, unitText: { fontFamily: "DMSans_700Bold", fontSize: 12, color: MAROON }, unitTextActive: { color: "#FFFFFF" }, heightRow: { flexDirection: "row", gap: 10 }, heightInputWrap: { flex: 1, position: "relative" }, suffix: { position: "absolute", right: 14, top: 18, fontFamily: "DMSans_400Regular", fontSize: 12, color: "#9A8F8A" }, helper: { marginTop: 6, marginBottom: 18, fontFamily: "DMSans_400Regular", fontSize: 12, color: "#9A8F8A" }, save: { height: 56, marginTop: 8, borderRadius: 14, backgroundColor: MAROON, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, shadowColor: MAROON, shadowOpacity: 0.26, shadowRadius: 11, shadowOffset: { width: 0, height: 8 }, elevation: 5 }, saveDisabled: { opacity: 0.75 }, saveText: { fontFamily: "DMSans_700Bold", fontSize: 16, color: "#FFFFFF" }, toast: { position: "absolute", bottom: 20, alignSelf: "center", paddingHorizontal: 18, paddingVertical: 10, borderRadius: 20, backgroundColor: MAROON, elevation: 6 }, toastText: { fontFamily: "DMSans_600SemiBold", fontSize: 13, color: "#FFFFFF" } });

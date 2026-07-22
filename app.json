@@ -11,10 +11,16 @@
       "bundleIdentifier": "com.phygify.wearify",
       "associatedDomains": [
         "applinks:wearify-app.vercel.app"
-      ]
+      ],
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "package": "com.phygify.wearify",
+      "blockedPermissions": [
+        "android.permission.SYSTEM_ALERT_WINDOW"
+      ],
       "adaptiveIcon": {
         "backgroundColor": "#68262A",
         "foregroundImage": "./assets/android-icon-foreground.png",
@@ -68,14 +74,16 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/splash.png",
-          "resizeMode": "cover",
+          "image": "./assets/splash-logo.png",
+          "imageWidth": 240,
+          "resizeMode": "contain",
           "backgroundColor": "#68262A"
         }
       ],
       "expo-font",
       "expo-video",
-      "expo-notifications"
+      "expo-notifications",
+      "@react-native-community/datetimepicker"
     ],
     "experiments": {
       "typedRoutes": true
@@ -85,7 +93,8 @@
     },
     "updates": {
       "checkAutomatically": "ON_LOAD",
-      "fallbackToCacheTimeout": 0
+      "fallbackToCacheTimeout": 0,
+      "url": "https://u.expo.dev/285c421c-18da-4746-ae3d-9170c2d23006"
     },
     "extra": {
       "router": {},

@@ -13,25 +13,35 @@ expo-env.d.ts
 .kotlin/
 *.orig.*
 *.jks
+*.keystore
 *.p8
 *.p12
 *.key
 *.mobileprovision
+credentials.json
+*.apk
+*.aab
 
 # Metro
 .metro-health-check*
 
 # debug
-npm-debug.*
-yarn-debug.*
-yarn-error.*
+pnpm-debug.log*
 
 # macOS
 .DS_Store
 *.pem
 
-# local env files
-.env*.local
+# local env files (keep .env.example tracked)
+.env
+.env.*
+!.env.example
+
+# QA / browser tool output
+.playwright-cli/
+
+# local audit artifacts (may reference credentials to rotate)
+security_best_practices_report.md
 
 # typescript
 *.tsbuildinfo
@@ -39,3 +49,4 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+.gstack/

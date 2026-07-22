@@ -1,3 +1,55 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+@import "uniwind";
+
+/* Wearify customer app — Heritage Rose.
+ * Source of truth: the Next.js /c customer theme. Keep product styling here;
+ * reserve TypeScript tokens for native props that cannot accept className.
+ */
+@theme {
+  --color-cx-bg: #fbf7f1;
+  --color-cx-bg-deep: #f3ece0;
+  --color-cx-surface: #ffffff;
+  --color-cx-surface-soft: #f8f2e9;
+
+  --color-cx-ink: #1c1108;
+  --color-cx-ink-mid: #3d2e1e;
+  --color-cx-ink-soft: #6b5744;
+  --color-cx-ink-muted: #77685d;
+  --color-cx-ink-ghost: #8a786a;
+
+  --color-cx-primary: #68262a;
+  --color-cx-primary-light: #a94540;
+  --color-cx-primary-dark: #5e1a18;
+  --color-cx-primary-ghost: #f5e6e3;
+
+  --color-cx-gold: #b8860b;
+  --color-cx-gold-light: #d4a017;
+  --color-cx-gold-dark: #7a5a08;
+  --color-cx-gold-ghost: #faf1dd;
+
+  --color-cx-border: #e4d9cc;
+  --color-cx-border-light: #f0e8dc;
+  --color-cx-success: #1e5c2f;
+  --color-cx-error: #8b0000;
+  --color-cx-whatsapp: #25d366;
+
+  --font-dm: "DMSans_400Regular";
+  --font-dm-medium: "DMSans_500Medium";
+  --font-dm-semibold: "DMSans_600SemiBold";
+  --font-dm-bold: "DMSans_700Bold";
+  --font-montserrat-light: "Montserrat_300Light";
+  --font-montserrat: "Montserrat_400Regular";
+  --font-montserrat-medium: "Montserrat_500Medium";
+  --font-montserrat-semibold: "Montserrat_600SemiBold";
+  --font-montserrat-bold: "Montserrat_700Bold";
+  --font-display-semibold: "CormorantGaramond_600SemiBold";
+  --font-display-bold: "CormorantGaramond_700Bold";
+  --font-raleway-light: "Raleway_300Light";
+  --font-mono: "DMMono_400Regular";
+
+  --radius-cx-xs: 6px;
+  --radius-cx-sm: 10px;
+  --radius-cx-md: 12px;
+  --radius-cx-lg: 16px;
+  --radius-cx-xl: 20px;
+}

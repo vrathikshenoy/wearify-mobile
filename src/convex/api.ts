@@ -40,7 +40,7 @@ export const api = {
     updatePreferences: mutation<Token & { customerId: CustomerId; preferredOccasions?: string[]; preferredFabrics?: string[]; preferredColors?: string[]; budgetRange?: string; upcomingOccasion?: string; upcomingOccasionDate?: string; city?: string }, null>("customers:updatePreferences"),
     updateConsent: mutation<Token & { customerId: CustomerId; consentHistory?: boolean; consentMessages?: boolean; consentAiPersonal?: boolean; consentPhotos?: boolean; consentGrantedDate?: string }, null>("customers:updateConsent"),
     listStoreLinksEnriched: query<Token & { customerId: CustomerId }, StoreLink[]>("customers:listStoreLinksEnriched"),
-    listNewArrivalsForCustomer: query<Token & { customerId: CustomerId }, Saree[]>("customers:listNewArrivalsForCustomer"),
+    listNewArrivalsForCustomer: query<Token & { customerId: CustomerId }, Record<string, { storeId: string; storeName: string; sarees: Saree[] }>>("customers:listNewArrivalsForCustomer"),
     listVisitHistory: query<Token & { customerId: CustomerId }, StoreLink[]>("customers:listVisitHistory"),
     getLoyaltyTransactions: query<Token & { customerId: CustomerId }, LoyaltyTransaction[]>("customers:getLoyaltyTransactions"),
     getWishlist: query<Token & { customerId: CustomerId }, WishlistItem[]>("customers:getWishlist"),

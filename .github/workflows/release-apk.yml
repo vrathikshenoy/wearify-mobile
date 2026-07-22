@@ -50,7 +50,10 @@ jobs:
       - name: Configure Gradle (memory + ABIs)
         working-directory: android
         run: |
+          # Leading blank line: Expo's gradle.properties has no trailing newline,
+          # so appending directly would glue onto its last property and corrupt it.
           {
+            echo ""
             echo "org.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=1g -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8"
             echo "org.gradle.parallel=false"
             echo "org.gradle.workers.max=4"

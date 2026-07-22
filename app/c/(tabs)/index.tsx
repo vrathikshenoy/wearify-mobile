@@ -232,9 +232,15 @@ function NewSpaceCard({ title, subtitle, background, color = "#FFFFFF", image, i
   tall?: boolean;
   onPress: () => void;
 }) {
+  const words = title.trim().split(" ");
+  const accent = words.pop();
+  const lead = words.join(" ");
   return (
     <Pressable accessibilityRole="button" style={[styles.newSpaceCard, tall ? styles.newSpaceTall : styles.newSpaceShort, { backgroundColor: background }]} onPress={onPress}>
-      <Text style={[styles.newSpaceTitle, { color }]}>{title}</Text>
+      <Text style={[styles.newSpaceTitle, { color }]}>
+        {lead ? <Text style={styles.newSpaceTitleLead}>{lead} </Text> : null}
+        <Text style={styles.newSpaceTitleAccent}>{accent}</Text>
+      </Text>
       <Text style={[styles.newSpaceSubtitle, { color }]}>{subtitle}</Text>
       <ArrowRight size={18} color={color} strokeWidth={2} style={styles.newSpaceArrow} />
       <Image source={image} style={[styles.newSpaceImage, { width: imageWidth, bottom: imageBottom }]} contentFit="contain" accessibilityElementsHidden />
@@ -286,7 +292,9 @@ const styles = StyleSheet.create({
   newSpaceCard: { flex: 1, position: "relative", overflow: "hidden", borderRadius: 10, padding: 12, alignItems: "flex-start" },
   newSpaceShort: { height: 100 },
   newSpaceTall: { height: 209 },
-  newSpaceTitle: { zIndex: 1, fontFamily: "Montserrat_500Medium", fontSize: 16, lineHeight: 20, letterSpacing: -0.21 },
+  newSpaceTitle: { zIndex: 1, fontFamily: "CormorantGaramond_600SemiBold", fontSize: 23, lineHeight: 26, letterSpacing: -0.3 },
+  newSpaceTitleLead: { fontFamily: "CormorantGaramond_600SemiBold" },
+  newSpaceTitleAccent: { fontFamily: "CormorantGaramond_600SemiBold_Italic" },
   newSpaceSubtitle: { zIndex: 1, width: 96, maxWidth: "72%", marginTop: 4, fontFamily: "Montserrat_300Light", fontSize: 10, lineHeight: 12, letterSpacing: -0.21 },
   newSpaceArrow: { zIndex: 1, marginTop: "auto" },
   newSpaceImage: { position: "absolute", right: 0, height: "72%" },

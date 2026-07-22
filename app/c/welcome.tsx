@@ -1,5 +1,5 @@
-import { Pressable, Text, View, useWindowDimensions } from "react-native";
-import { Image, ImageBackground } from "expo-image";
+import { Pressable, StyleSheet, Text, View, useWindowDimensions } from "react-native";
+import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import { ArrowRight, ChevronDown } from "lucide-react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -13,12 +13,15 @@ export default function WelcomeScreen() {
   const figureWidth = Math.min(width * 0.74, 300);
 
   return (
-    <ImageBackground
-      source={require("@/assets/customer/third-screen/background.svg")}
-      style={{ flex: 1, backgroundColor: "#FFFFFF" }}
-      contentFit="cover"
-      contentPosition="center"
-    >
+    <View className="flex-1 bg-white">
+      <Image
+        source={require("@/assets/customer/third-screen/background.svg")}
+        style={[StyleSheet.absoluteFill, { opacity: 0.12 }]}
+        contentFit="cover"
+        contentPosition="center"
+        pointerEvents="none"
+        accessibilityElementsHidden
+      />
       <View className="flex-row items-center justify-between px-[22px]" style={{ paddingTop: insets.top + 18 }}>
         <Brand width={124} />
         <Pressable accessibilityRole="button" accessibilityLabel="Language: English" className="min-h-[44px] flex-row items-center gap-[5px] rounded-full bg-cx-primary px-[15px]" style={({ pressed }) => [languageShadow, pressed && pressedStyle]}>
@@ -35,7 +38,7 @@ export default function WelcomeScreen() {
           accessibilityLabel="Saree virtual try-on preview"
         />
         <Text className="text-center font-montserrat-medium text-2xl leading-[29px] text-[#2A2522]">Find Your Perfect Look</Text>
-        <Text className="mt-3 max-w-[311px] text-center font-montserrat text-base leading-5 text-[#222222]">“Explore bridal, festive, and designer sarees in real-time.”</Text>
+        <Text className="mt-3 max-w-[311px] text-center font-montserrat text-base leading-5 text-[#222222]">“Explore Bridal, Festive, And Designer Sarees In Real-Time.”</Text>
       </View>
 
       <View>
@@ -55,7 +58,7 @@ export default function WelcomeScreen() {
           <Text className="text-center font-montserrat text-[10px] leading-3 text-white">© copyright PHYGIFY TECHNOSERVICES PRIVATE LIMITED</Text>
         </View>
       </View>
-    </ImageBackground>
+    </View>
   );
 }
 

@@ -21,6 +21,7 @@ import { DMSans_600SemiBold } from "@expo-google-fonts/dm-sans/600SemiBold";
 import { DMSans_700Bold } from "@expo-google-fonts/dm-sans/700Bold";
 import { DMMono_400Regular } from "@expo-google-fonts/dm-mono/400Regular";
 import { CormorantGaramond_600SemiBold } from "@expo-google-fonts/cormorant-garamond/600SemiBold";
+import { CormorantGaramond_600SemiBold_Italic } from "@expo-google-fonts/cormorant-garamond/600SemiBold_Italic";
 import { CormorantGaramond_700Bold } from "@expo-google-fonts/cormorant-garamond/700Bold";
 import { Raleway_300Light } from "@expo-google-fonts/raleway/300Light";
 import { ConnectivityProvider } from "@/src/providers/connectivity";
@@ -41,7 +42,7 @@ export default function RootLayout() {
   const [loaded, error] = useFonts({
     Montserrat_300Light, Montserrat_400Regular, Montserrat_500Medium, Montserrat_600SemiBold, Montserrat_700Bold,
     DMSans_400Regular, DMSans_500Medium, DMSans_600SemiBold, DMSans_700Bold,
-    DMMono_400Regular, CormorantGaramond_600SemiBold, CormorantGaramond_700Bold, Raleway_300Light,
+    DMMono_400Regular, CormorantGaramond_600SemiBold, CormorantGaramond_600SemiBold_Italic, CormorantGaramond_700Bold, Raleway_300Light,
   });
   useEffect(() => {
     if (!loaded && !error) return;
@@ -67,7 +68,7 @@ export default function RootLayout() {
 }
 
 function LaunchSplash() {
-  return <View style={launch.page}><ImageBackground source={require("@/assets/customer/first-screen/background.svg")} style={StyleSheet.absoluteFill} contentFit="cover" /><View style={launch.logo}><Brand light width={240} /></View><Text style={launch.copyright}>© copyright PHYGIFY TECHNOSERVICES PRIVATE LIMITED</Text></View>;
+  return <View style={launch.page}><ImageBackground source={require("@/assets/customer/first-screen/background.svg")} style={[StyleSheet.absoluteFill, { opacity: 0.15 }]} contentFit="cover" /><View style={launch.logo}><Brand light width={240} /></View><Text style={launch.copyright}>© copyright PHYGIFY TECHNOSERVICES PRIVATE LIMITED</Text></View>;
 }
 
 const launch = StyleSheet.create({ page: { flex: 1, overflow: "hidden", backgroundColor: "#68262A" }, logo: { position: "absolute", inset: 0, alignItems: "center", justifyContent: "center" }, copyright: { position: "absolute", left: 16, right: 16, bottom: 24, textAlign: "center", fontFamily: "Montserrat_500Medium", fontSize: 11, letterSpacing: 0.1, color: "rgba(242,228,218,0.55)" } });

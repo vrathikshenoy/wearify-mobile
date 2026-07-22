@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { ActivityIndicator, Platform, Pressable, ScrollView, Text, TextInput, View } from "react-native";
-import { Image, ImageBackground } from "expo-image";
+import { ActivityIndicator, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { Image } from "expo-image";
 import DateTimePicker, { type DateTimePickerEvent } from "@react-native-community/datetimepicker";
 import { useAction, useMutation } from "convex/react";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -140,7 +140,8 @@ export default function RegisterScreen() {
   }
 
   return (
-    <ImageBackground source={require("@/assets/customer/third-screen/background.svg")} style={{ flex: 1, backgroundColor: "#FFFFFF" }} contentFit="cover" contentPosition="top center">
+    <View className="flex-1 bg-white">
+      <Image source={require("@/assets/customer/third-screen/background.svg")} style={[StyleSheet.absoluteFill, { opacity: 0.12 }]} contentFit="cover" contentPosition="top center" pointerEvents="none" accessibilityElementsHidden />
       <ScrollView contentContainerClassName="grow items-center justify-center px-5 py-4" keyboardShouldPersistTaps="handled">
         <View className="mb-[22px] items-center"><Brand width={168} /><Text className="mt-1.5 font-raleway-light text-xs leading-[21px] tracking-[-0.32px] text-cx-primary">Your AI - Powered Saree Experience</Text></View>
         <View className="w-full max-w-[360px] rounded-cx-xl bg-white px-[21px] pb-[22px] pt-5" style={cardShadow}>
@@ -191,7 +192,7 @@ export default function RegisterScreen() {
       {step === "phone" ? <NumericKeypad onDigit={pressPhoneDigit} onBackspace={() => { setPhone(phone.slice(0, -1)); setError(""); }} /> : null}
       {step === "otp" ? <NumericKeypad onDigit={pressOtpDigit} onBackspace={deleteOtpDigit} /> : null}
       {step === "details" ? <View className="bg-cx-primary px-4 pt-2" style={{ paddingBottom: insets.bottom + 8 }}><Text className="text-center font-montserrat text-[10px] leading-3 text-white">© copyright PHYGIFY TECHNOSERVICES PRIVATE LIMITED</Text></View> : null}
-    </ImageBackground>
+    </View>
   );
 }
 

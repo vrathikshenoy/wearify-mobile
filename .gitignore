@@ -40,6 +40,12 @@ pnpm-debug.log*
 # QA / browser tool output
 .playwright-cli/
 
+# JetBrains IDE
+.idea/
+
+# Local design reference (PWA screenshots + Figma exports), not shipped
+assets/cusotmer/
+
 # local audit artifacts (may reference credentials to rotate)
 security_best_practices_report.md
 

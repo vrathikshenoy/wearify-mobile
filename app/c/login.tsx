@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
-import { ActivityIndicator, Pressable, ScrollView, Text, View } from "react-native";
-import { ImageBackground } from "expo-image";
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Image } from "expo-image";
 import { useAction, useMutation } from "convex/react";
 import { useRouter } from "expo-router";
 import { ArrowRight } from "lucide-react-native";
@@ -120,7 +120,8 @@ export default function LoginScreen() {
   }
 
   return (
-    <ImageBackground source={require("@/assets/customer/third-screen/background.svg")} style={{ flex: 1, backgroundColor: "#FFFFFF" }} contentFit="cover" contentPosition="top center">
+    <View className="flex-1 bg-white">
+      <Image source={require("@/assets/customer/third-screen/background.svg")} style={[StyleSheet.absoluteFill, { opacity: 0.12 }]} contentFit="cover" contentPosition="top center" pointerEvents="none" accessibilityElementsHidden />
       <ScrollView contentContainerClassName="grow items-center justify-center px-5 py-4" keyboardShouldPersistTaps="handled">
         <View className="mb-[22px] items-center">
           <Brand width={168} />
@@ -171,7 +172,7 @@ export default function LoginScreen() {
         </View>
       </ScrollView>
       <NumericKeypad onDigit={step === "phone" ? pressPhoneDigit : pressOtpDigit} onBackspace={step === "phone" ? () => { setPhone(phone.slice(0, -1)); setError(""); } : deleteOtpDigit} />
-    </ImageBackground>
+    </View>
   );
 }
 

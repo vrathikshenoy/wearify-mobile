@@ -5,6 +5,7 @@ import {
   Platform,
   Pressable,
   ScrollView,
+  StyleSheet,
   Text,
   TextInput,
   View,
@@ -140,11 +141,18 @@ export function Field({ label, error, multiline, style, ...props }: TextInputPro
   );
 }
 
-export function Loading({ label = "Loading…" }: { label?: string }) {
+export function Loading(_props: { label?: string }) {
   return (
-    <View className="min-h-[180px] flex-1 items-center justify-center gap-2.5">
-      <ActivityIndicator color={colors.brand} />
-      <Text className="font-dm text-[13px] text-cx-ink-soft">{label}</Text>
+    <View className="flex-1 items-center justify-center overflow-hidden" style={{ backgroundColor: "#68262A" }}>
+      <Image
+        source={require("@/assets/customer/first-screen/background.svg")}
+        style={[StyleSheet.absoluteFill, { opacity: 0.15 }]}
+        contentFit="cover"
+        pointerEvents="none"
+        accessibilityElementsHidden
+      />
+      <Brand light width={240} />
+      <ActivityIndicator color="#F2E4DA" style={{ marginTop: 28 }} />
     </View>
   );
 }

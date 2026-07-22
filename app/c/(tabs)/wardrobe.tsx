@@ -87,7 +87,7 @@ export default function WardrobeScreen() {
 }
 
 function StudioBackground() {
-  return <><LinearGradient colors={["#FFFFFF", "#F4F4F4", "#D6D6D6", "#A4A4A4"]} locations={[0, 0.38, 0.68, 1]} style={StyleSheet.absoluteFill} /><View style={styles.halo} /></>;
+  return <LinearGradient colors={["#FFFFFF", "#F4F4F4", "#D6D6D6", "#A4A4A4"]} locations={[0, 0.38, 0.68, 1]} style={StyleSheet.absoluteFill} />;
 }
 
 function WardrobeMedia({ item }: { item: WardrobeItem }) {
@@ -113,7 +113,7 @@ const styles = StyleSheet.create({
   selectedCopy: { paddingHorizontal: 20, alignItems: "center" },
   selectedName: { fontFamily: "Montserrat_600SemiBold", fontSize: 12, lineHeight: 14, letterSpacing: -0.24, color: MAROON, textAlign: "center" },
   selectedPrice: { marginTop: 2, fontFamily: "Montserrat_600SemiBold", fontSize: 12, lineHeight: 14, letterSpacing: -0.24, color: MAROON },
-  thumbnail: { overflow: "hidden", borderRadius: 8, borderWidth: 2, borderColor: "rgba(255,255,255,0.85)", backgroundColor: "rgba(255,255,255,0.5)", shadowColor: "#000000", shadowOpacity: 0.12, shadowRadius: 5, shadowOffset: { width: 0, height: 3 }, elevation: 2 },
+  thumbnail: { overflow: "hidden", borderRadius: 8, borderWidth: 2, borderColor: "#FFFFFF", backgroundColor: "#F4F0ED", shadowColor: "#000000", shadowOpacity: 0.12, shadowRadius: 5, shadowOffset: { width: 0, height: 3 }, elevation: 2 },
   thumbnailActive: { borderColor: MAROON, shadowColor: MAROON, shadowOpacity: 0.24, shadowRadius: 8, shadowOffset: { width: 0, height: 6 }, elevation: 5 },
   empty: { paddingHorizontal: 20, paddingVertical: 72, alignItems: "center" },
   emptyTitle: { fontFamily: "Montserrat_600SemiBold", fontSize: 16, color: "#2A2522", textAlign: "center" },

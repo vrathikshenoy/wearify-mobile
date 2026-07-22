@@ -71,7 +71,7 @@ export default function HomeScreen() {
 
   return (
     <View className="flex-1 bg-white">
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
+      <ScrollView className="flex-1" showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
         <View style={[styles.hero, { paddingTop: insets.top }]}>
           <Image source={HOME.hero} style={[StyleSheet.absoluteFill, { opacity: 0.2 }]} contentFit="cover" accessibilityElementsHidden />
           <View style={styles.appBar}>
@@ -191,13 +191,13 @@ export default function HomeScreen() {
           </View>
         ) : null}
 
-        <View style={styles.copyright}><Text style={styles.copyrightText}>© copyright PHYGIFY TECHNOSERVICES PRIVATE LIMITED</Text></View>
       </ScrollView>
+      <View style={styles.copyright}><Text style={styles.copyrightText}>© copyright PHYGIFY TECHNOSERVICES PRIVATE LIMITED</Text></View>
 
       <Pressable
         accessibilityRole="link"
         accessibilityLabel="Chat with us on WhatsApp"
-        className="absolute bottom-3 right-3 z-20 h-[60px] w-[132px]"
+        className="absolute bottom-[40px] right-3 z-20 h-[60px] w-[132px]"
         style={({ pressed }) => [whatsappShadow, pressed && { transform: [{ scale: 0.97 }] }]}
         onPress={() => void Linking.openURL("https://wa.me/?text=Hi%2C%20I%27d%20like%20some%20styling%20help%20on%20Wearify.")}
       >
@@ -324,7 +324,7 @@ const styles = StyleSheet.create({
   storeName: { fontFamily: "Montserrat_600SemiBold", fontSize: 12, lineHeight: 15, color: "#000000" },
   storeCity: { marginTop: 4, fontFamily: "Montserrat_500Medium", fontSize: 10, letterSpacing: 0.4, color: "#878787", textTransform: "capitalize" },
   storeArrow: { width: 24, height: 22, borderRadius: 4, borderWidth: 1, borderColor: "rgba(135,135,135,0.2)", alignItems: "center", justifyContent: "center" },
-  copyright: { minHeight: 20, marginTop: 4, paddingHorizontal: 16, paddingVertical: 4, backgroundColor: MAROON, alignItems: "center", justifyContent: "center" },
+  copyright: { minHeight: 20, paddingHorizontal: 16, paddingVertical: 6, backgroundColor: MAROON, alignItems: "center", justifyContent: "center" },
   copyrightText: { fontFamily: "Montserrat_400Regular", fontSize: 10, lineHeight: 12, color: "#FFFFFF", textAlign: "center" },
   whatsappLabelShadow: { shadowColor: "#000000", shadowOpacity: 0.1, shadowRadius: 5, shadowOffset: { width: 0, height: 2 }, elevation: 2 },
 });

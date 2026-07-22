@@ -71,7 +71,7 @@ export default function HomeScreen() {
 
   return (
     <View className="flex-1 bg-white">
-      <ScrollView className="flex-1" showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
         <View style={[styles.hero, { paddingTop: insets.top }]}>
           <Image source={HOME.hero} style={[StyleSheet.absoluteFill, { opacity: 0.2 }]} contentFit="cover" accessibilityElementsHidden />
           <View style={styles.appBar}>
@@ -191,8 +191,8 @@ export default function HomeScreen() {
           </View>
         ) : null}
 
+        <View style={styles.copyright}><Text style={styles.copyrightText}>© copyright PHYGIFY TECHNOSERVICES PRIVATE LIMITED</Text></View>
       </ScrollView>
-      <View style={styles.copyright}><Text style={styles.copyrightText}>© copyright PHYGIFY TECHNOSERVICES PRIVATE LIMITED</Text></View>
 
       <Pressable
         accessibilityRole="link"
@@ -202,9 +202,9 @@ export default function HomeScreen() {
         onPress={() => void Linking.openURL("https://wa.me/?text=Hi%2C%20I%27d%20like%20some%20styling%20help%20on%20Wearify.")}
       >
         <View className="absolute left-0 top-[13px] h-9 w-[116px] justify-center rounded-l-full bg-white pl-3.5 pr-6" style={styles.whatsappLabelShadow}>
-          <Text className="font-montserrat-bold text-[9px] text-[#168C2A]">Chat With Us</Text>
+          <Text className="font-montserrat-semibold text-[10px] text-[#1FA24F]">Chat With Us</Text>
         </View>
-        <View className="absolute right-0 top-0 size-[60px] items-center justify-center rounded-full border-[3px] border-white bg-[#43D969]">
+        <View className="absolute right-0 top-0 size-[60px] items-center justify-center rounded-full border-[4px] border-[#B4EEBD] bg-[#3CB951]">
           <Image source={require("@/assets/home/whatsapp-icon/9_group_1967.svg")} style={{ width: 34, height: 34 }} contentFit="contain" />
         </View>
       </Pressable>
@@ -324,7 +324,7 @@ const styles = StyleSheet.create({
   storeName: { fontFamily: "Montserrat_600SemiBold", fontSize: 12, lineHeight: 15, color: "#000000" },
   storeCity: { marginTop: 4, fontFamily: "Montserrat_500Medium", fontSize: 10, letterSpacing: 0.4, color: "#878787", textTransform: "capitalize" },
   storeArrow: { width: 24, height: 22, borderRadius: 4, borderWidth: 1, borderColor: "rgba(135,135,135,0.2)", alignItems: "center", justifyContent: "center" },
-  copyright: { minHeight: 20, paddingHorizontal: 16, paddingVertical: 6, backgroundColor: MAROON, alignItems: "center", justifyContent: "center" },
+  copyright: { minHeight: 20, marginTop: 16, paddingHorizontal: 16, paddingVertical: 6, backgroundColor: MAROON, alignItems: "center", justifyContent: "center" },
   copyrightText: { fontFamily: "Montserrat_400Regular", fontSize: 10, lineHeight: 12, color: "#FFFFFF", textAlign: "center" },
   whatsappLabelShadow: { shadowColor: "#000000", shadowOpacity: 0.1, shadowRadius: 5, shadowOffset: { width: 0, height: 2 }, elevation: 2 },
 });

@@ -73,6 +73,7 @@ export default function LooksScreen() {
   return (
     <View style={styles.page}>
       <AppHeader back />
+      <View style={styles.listWrap}>
       <FlashList
         data={filtered}
         numColumns={2}
@@ -95,13 +96,14 @@ export default function LooksScreen() {
           </>
         }
         ListEmptyComponent={<EmptyLooks />}
-        ListFooterComponent={<Copyright />}
         renderItem={({ item }) => {
           const store = (stores || []).find((entry) => entry.storeId === item.storeId);
           const wished = wishlistBySaree.has(String(item.sareeId));
           return <LookCard item={item} city={store?.storeCity} wished={wished} onOpen={() => router.push(`/c/looks/${item._id}`)} onWishlist={() => void toggleWishlist(item)} />;
         }}
       />
+      </View>
+      <Copyright />
       {toast ? <View style={styles.toast}><Text style={styles.toastText}>{toast}</Text></View> : null}
       <CatalogFilterSheet visible={filterOpen} initial={filters} dates={dates} onClose={() => setFilterOpen(false)} onApply={(next) => { setFilters(next); setFilterOpen(false); }} />
     </View>
@@ -147,7 +149,7 @@ const styles = StyleSheet.create({
   page: { flex: 1, backgroundColor: "#FAF7F4" },
   list: { paddingHorizontal: 11, paddingBottom: 0 },
   filterStrip: { marginHorizontal: -11, backgroundColor: "#FFFFFF" },
-  filterRail: { paddingHorizontal: 16, paddingTop: 16, gap: 8, alignItems: "center" },
+  filterRail: { paddingHorizontal: 16, paddingTop: 16, paddingBottom: 12, gap: 8, alignItems: "center" },
   filterButton: { width: 35, height: 35, borderRadius: 8, borderWidth: 1, borderColor: "#D9D9D9", backgroundColor: "rgba(255,255,255,0.5)", alignItems: "center", justifyContent: "center" },
   filterIcon: { width: 18, height: 17 },
   chip: { height: 35, paddingHorizontal: 14, borderRadius: 8, borderWidth: 1, borderColor: "#D9D9D9", backgroundColor: "#FFFFFF", alignItems: "center", justifyContent: "center" },
@@ -156,7 +158,7 @@ const styles = StyleSheet.create({
   chipTextActive: { color: "#FFFFFF" },
   more: { height: 35, paddingHorizontal: 10, borderRadius: 8, borderWidth: 1, borderColor: "#D9D9D9", backgroundColor: "#FFFFFF", flexDirection: "row", alignItems: "center", gap: 4 },
   moreText: { fontFamily: "Montserrat_400Regular", fontSize: 10, letterSpacing: -0.23, color: "#222222" },
-  banner: { height: 50, marginHorizontal: -11, marginTop: 10, overflow: "hidden", backgroundColor: MAROON, alignItems: "center", justifyContent: "center" },
+  banner: { height: 50, marginHorizontal: -11, marginTop: 0, overflow: "hidden", backgroundColor: MAROON, alignItems: "center", justifyContent: "center" },
   bannerText: { fontFamily: "Montserrat_500Medium", fontSize: 14, letterSpacing: -0.21, color: "#FFFFFF" },
   title: { marginHorizontal: -11, paddingHorizontal: 16, paddingTop: 18, paddingBottom: 10, backgroundColor: "#FFFFFF", fontFamily: "Montserrat_600SemiBold", fontSize: 16, lineHeight: 26, color: "#000000" },
   card: { flex: 1, marginHorizontal: 4.5, marginBottom: 9, overflow: "hidden", borderRadius: 10, backgroundColor: "#FFFFFF", ...shadow },
@@ -175,7 +177,8 @@ const styles = StyleSheet.create({
   emptyIcon: { width: 64, height: 64, marginBottom: 14, borderRadius: 32, backgroundColor: "#FBE4E8", alignItems: "center", justifyContent: "center" },
   emptyTitle: { fontFamily: "Montserrat_700Bold", fontSize: 17, color: "#2A2522" },
   emptyCopy: { marginTop: 6, fontFamily: "Montserrat_400Regular", fontSize: 13, color: "#9A8F8A", textAlign: "center" },
-  copyright: { minHeight: 20, marginHorizontal: -11, marginTop: 20, paddingHorizontal: 16, paddingVertical: 4, backgroundColor: MAROON, alignItems: "center", justifyContent: "center" },
+  listWrap: { flex: 1 },
+  copyright: { minHeight: 20, paddingHorizontal: 16, paddingVertical: 6, backgroundColor: MAROON, alignItems: "center", justifyContent: "center" },
   copyrightText: { fontFamily: "Montserrat_400Regular", fontSize: 10, lineHeight: 12, color: "#FFFFFF", textAlign: "center" },
   toast: { position: "absolute", bottom: 20, alignSelf: "center", paddingHorizontal: 18, paddingVertical: 10, borderRadius: 20, backgroundColor: MAROON, elevation: 6 },
   toastText: { fontFamily: "Montserrat_600SemiBold", fontSize: 13, color: "#FFFFFF" },

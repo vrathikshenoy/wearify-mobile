@@ -33,12 +33,12 @@ export default function WishlistScreen() {
         <Text style={styles.title}>MY WISHLIST</Text>
         <View style={styles.count}><Text style={styles.countText}>{items.length} Wishlist</Text></View>
       </View>
+      <View style={styles.listWrap}>
       <FlashList
         data={items}
         numColumns={2}
         contentContainerStyle={styles.list}
         ListEmptyComponent={<EmptyWishlist />}
-        ListFooterComponent={<Copyright />}
         renderItem={({ item }) => (
           <View style={styles.card}>
             <View style={styles.imageWrap}>
@@ -59,6 +59,8 @@ export default function WishlistScreen() {
           </View>
         )}
       />
+      </View>
+      <Copyright />
     </View>
   );
 }
@@ -95,6 +97,7 @@ const styles = StyleSheet.create({
   emptyIcon: { width: 64, height: 64, marginBottom: 14, borderRadius: 32, backgroundColor: "#FBE4E8", alignItems: "center", justifyContent: "center" },
   emptyTitle: { fontFamily: "Montserrat_600SemiBold", fontSize: 16, color: "#2A2522" },
   emptyCopy: { marginTop: 6, fontFamily: "Montserrat_400Regular", fontSize: 13, color: "#9A8F8A", textAlign: "center" },
-  copyright: { minHeight: 20, marginHorizontal: -11, marginTop: 16, paddingHorizontal: 16, paddingVertical: 4, backgroundColor: MAROON, alignItems: "center", justifyContent: "center" },
+  listWrap: { flex: 1 },
+  copyright: { minHeight: 20, paddingHorizontal: 16, paddingVertical: 6, backgroundColor: MAROON, alignItems: "center", justifyContent: "center" },
   copyrightText: { fontFamily: "Montserrat_400Regular", fontSize: 10, lineHeight: 12, color: "#FFFFFF", textAlign: "center" },
 });

@@ -47,7 +47,7 @@ export function LookMedia({ cutout, render, fallback, label, style, scale = 1, s
 }
 
 const styles = StyleSheet.create({
-  clip: { overflow: "hidden", backgroundColor: colors.brandSoft },
+  clip: { overflow: "hidden" },
   image: { width: "100%", height: "100%" },
   loading: { overflow: "hidden", alignItems: "center", justifyContent: "center" },
   missing: { alignItems: "center", justifyContent: "center", backgroundColor: colors.brandSoft },

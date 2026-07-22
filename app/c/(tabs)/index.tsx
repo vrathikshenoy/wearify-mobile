@@ -73,7 +73,7 @@ export default function HomeScreen() {
     <View className="flex-1 bg-white">
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
         <View style={[styles.hero, { paddingTop: insets.top }]}>
-          <Image source={HOME.hero} style={StyleSheet.absoluteFill} contentFit="cover" accessibilityElementsHidden />
+          <Image source={HOME.hero} style={[StyleSheet.absoluteFill, { opacity: 0.2 }]} contentFit="cover" accessibilityElementsHidden />
           <View style={styles.appBar}>
             <Pressable accessibilityRole="button" accessibilityLabel="Profile" hitSlop={12} onPress={() => router.push("/c/me")}>
               <User size={20} strokeWidth={1.6} color="#222222" />

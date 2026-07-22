@@ -1,6 +1,5 @@
-import { useState, type ReactNode } from "react";
-import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
-import Slider from "@expo/ui/community/slider";
+import { useRef, useState, type ReactNode } from "react";
+import { Modal, PanResponder, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const MAROON = "#68262A";
@@ -56,7 +55,7 @@ function FilterContent({ initial, dates, onApply, onClose }: { initial: CatalogF
           <View style={styles.budget}>
             <Text style={styles.groupTitle}>Budget Range</Text>
             <Text style={styles.budgetValue}>₹{Math.round(budget).toLocaleString("en-IN")}</Text>
-            <Slider value={budget} minimumValue={0} maximumValue={MAX_BUDGET} step={100} minimumTrackTintColor={MAROON} onValueChange={setBudget} />
+            <BudgetSlider value={budget} max={MAX_BUDGET} step={100} onChange={setBudget} />
             <View style={styles.range}><Text style={styles.rangeText}>₹0</Text><Text style={styles.rangeText}>₹10,000</Text></View>
           </View>
         </ScrollView>
@@ -80,6 +79,39 @@ function SectionRow({ title, onReset }: { title: string; onReset: () => void }) 
 function FilterPill({ label, active, onPress }: { label: string; active: boolean; onPress: () => void }) {
   return <Pressable accessibilityRole="checkbox" accessibilityState={{ checked: active }} style={[styles.pill, active && styles.pillActive]} onPress={onPress}><Text style={[styles.pillText, active && styles.pillTextActive]}>{label}</Text></Pressable>;
 }
+
+function BudgetSlider({ value, max, step, onChange }: { value: number; max: number; step: number; onChange: (value: number) => void }) {
+  const width = useRef(0);
+  const pct = Math.max(0, Math.min(1, value / max)) * 100;
+  const update = (locationX: number) => {
+    const w = width.current;
+    if (w <= 0) return;
+    const p = Math.max(0, Math.min(1, locationX / w));
+    onChange(Math.round((p * max) / step) * step);
+  };
+  const pan = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: () => true,
+      onPanResponderGrant: (event) => update(event.nativeEvent.locationX),
+      onPanResponderMove: (event) => update(event.nativeEvent.locationX),
+    }),
+  ).current;
+  return (
+    <View style={sliderStyles.wrap} onLayout={(event) => (width.current = event.nativeEvent.layout.width)} {...pan.panHandlers}>
+      <View style={sliderStyles.track} />
+      <View style={[sliderStyles.fill, { width: `${pct}%` }]} />
+      <View style={[sliderStyles.thumb, { left: `${pct}%` }]} />
+    </View>
+  );
+}
+
+const sliderStyles = StyleSheet.create({
+  wrap: { height: 28, marginTop: 14, justifyContent: "center" },
+  track: { position: "absolute", left: 0, right: 0, top: 12, height: 4, borderRadius: 2, backgroundColor: "#E2E2E2" },
+  fill: { position: "absolute", left: 0, top: 12, height: 4, borderRadius: 2, backgroundColor: MAROON },
+  thumb: { position: "absolute", top: 4, marginLeft: -10, width: 20, height: 20, borderRadius: 10, backgroundColor: MAROON, borderWidth: 2, borderColor: "#FFFFFF", elevation: 3, shadowColor: "#000000", shadowOpacity: 0.2, shadowRadius: 3, shadowOffset: { width: 0, height: 1 } },
+});
 
 const styles = StyleSheet.create({
   modal: { flex: 1, justifyContent: "flex-end", backgroundColor: "rgba(0,0,0,0.45)" },

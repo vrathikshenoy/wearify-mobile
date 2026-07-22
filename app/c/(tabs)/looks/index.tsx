@@ -79,7 +79,7 @@ export default function LooksScreen() {
         contentContainerStyle={styles.list}
         ListHeaderComponent={
           <>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterRail}>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterStrip} contentContainerStyle={styles.filterRail}>
               <Pressable accessibilityRole="button" accessibilityLabel="Filter" style={styles.filterButton} onPress={() => setFilterOpen(true)}>
                 <Image source={require("@/assets/customer/my-looks/15_vector.svg")} style={styles.filterIcon} contentFit="contain" />
               </Pressable>
@@ -88,7 +88,7 @@ export default function LooksScreen() {
               <Pressable style={styles.more} onPress={() => setFilterOpen(true)}><Text style={styles.moreText}>More</Text><ChevronDown size={12} strokeWidth={2} color="#222222" /></Pressable>
             </ScrollView>
             <View style={styles.banner}>
-              <Image source={require("@/assets/customer/my-looks/16_chatgpt_image_jul_3__2026__06_12_36_pm__1__1.svg")} style={StyleSheet.absoluteFill} contentFit="cover" accessibilityElementsHidden />
+              <Image source={require("@/assets/customer/my-looks/16_chatgpt_image_jul_3__2026__06_12_36_pm__1__1.svg")} style={[StyleSheet.absoluteFill, { opacity: 0.2 }]} contentFit="cover" accessibilityElementsHidden />
               <Text style={styles.bannerText}>New style from your favorite store</Text>
             </View>
             <Text style={styles.title}>MY LOOKS</Text>
@@ -146,7 +146,8 @@ const shadow = { shadowColor: "#000000", shadowOpacity: 0.16, shadowRadius: 7.5,
 const styles = StyleSheet.create({
   page: { flex: 1, backgroundColor: "#FAF7F4" },
   list: { paddingHorizontal: 11, paddingBottom: 0 },
-  filterRail: { marginHorizontal: -11, paddingHorizontal: 16, paddingTop: 16, gap: 8, alignItems: "center", backgroundColor: "#FFFFFF" },
+  filterStrip: { marginHorizontal: -11, backgroundColor: "#FFFFFF" },
+  filterRail: { paddingHorizontal: 16, paddingTop: 16, gap: 8, alignItems: "center" },
   filterButton: { width: 35, height: 35, borderRadius: 8, borderWidth: 1, borderColor: "#D9D9D9", backgroundColor: "rgba(255,255,255,0.5)", alignItems: "center", justifyContent: "center" },
   filterIcon: { width: 18, height: 17 },
   chip: { height: 35, paddingHorizontal: 14, borderRadius: 8, borderWidth: 1, borderColor: "#D9D9D9", backgroundColor: "#FFFFFF", alignItems: "center", justifyContent: "center" },

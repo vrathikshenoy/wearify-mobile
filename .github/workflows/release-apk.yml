@@ -45,6 +45,19 @@ jobs:
           ANDROID_VERSION_CODE: ${{ github.run_number }}
         run: pnpm expo prebuild --platform android --no-install
 
+      # Expo's generated gradle.properties defaults to 512m metaspace, which OOMs
+      # during release lint. Mirror the proven eas.json "preview" build settings.
+      - name: Configure Gradle (memory + ABIs)
+        working-directory: android
+        run: |
+          {
+            echo "org.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=1g -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8"
+            echo "org.gradle.parallel=false"
+            echo "org.gradle.workers.max=4"
+            echo "org.gradle.daemon=false"
+            echo "reactNativeArchitectures=armeabi-v7a,arm64-v8a"
+          } >> gradle.properties
+
       - name: Build release APK
         working-directory: android
         run: |
